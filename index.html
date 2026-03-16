@@ -4,14 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HOB Home OS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;}
-  :root{
-    --rl-blue:#1a9fff;--rl-pink:#ff6bb5;--rl-gold:#f0a500;--rl-green:#22c55e;
-    --rl-bg:#0a0e1a;--rl-surface:#0d1220;--rl-border:#1e2535;--rl-muted:#6b7a99;
-    --rl-text:#e0e6f0;
-  }
+  :root{--rl-blue:#1a9fff;--rl-pink:#ff6bb5;--rl-gold:#f0a500;--rl-green:#22c55e;--rl-bg:#0a0e1a;--rl-surface:#0d1220;--rl-border:#1e2535;--rl-muted:#6b7a99;--rl-text:#e0e6f0;}
   body{font-family:'Barlow',sans-serif;background:var(--rl-bg);min-height:100vh;color:var(--rl-text);margin:0;}
   .app{min-height:100vh;}
   .screen{display:none;} .screen.active{display:block;}
@@ -34,11 +31,9 @@
   .pb-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#fff;}
   .pb-role{font-size:10px;color:#6b7a99;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
   .login-form{width:100%;max-width:360px;}
-  .login-field{margin-bottom:12px;}
-  .login-label{display:block;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#6b7a99;margin-bottom:5px;}
-  .login-input{width:100%;background:#0a0e1a;border:1px solid #1e2535;border-radius:6px;padding:10px 12px;font-size:14px;color:#e0e6f0;font-family:'Barlow',sans-serif;outline:none;}
+  .login-input{width:100%;background:#0a0e1a;border:1px solid #1e2535;border-radius:6px;padding:10px 12px;font-size:14px;color:#e0e6f0;font-family:'Barlow',sans-serif;outline:none;margin-bottom:10px;}
   .login-input:focus{border-color:#1a9fff;}
-  .login-btn{width:100%;background:#1a9fff;border:none;border-radius:6px;padding:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;margin-top:4px;}
+  .login-btn{width:100%;background:#1a9fff;border:none;border-radius:6px;padding:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;}
   .login-btn:hover{background:#0e87e8;}
   .login-err{font-size:12px;color:#ff4444;text-align:center;margin-top:8px;min-height:18px;}
   .back-link{font-size:12px;color:#6b7a99;cursor:pointer;text-align:center;margin-top:12px;text-decoration:underline;}
@@ -46,7 +41,6 @@
   .logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:#fff;letter-spacing:2px;text-transform:uppercase;}
   .logo span{color:#1a9fff;}
   .header-right{display:flex;align-items:center;gap:10px;}
-  .current-user{display:flex;align-items:center;gap:8px;}
   .cu-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;}
   .cu-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:#fff;}
   .logout-btn{font-size:11px;color:#6b7a99;cursor:pointer;text-decoration:underline;background:none;border:none;}
@@ -62,14 +56,14 @@
   .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;flex-shrink:0;}
   .player-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;letter-spacing:1px;text-transform:uppercase;color:#fff;}
   .player-rank{font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-top:1px;}
-  .rank-rh{color:#1a9fff;} .rank-bh{color:#ff6bb5;} .rank-eh{color:#f0a500;} .rank-mh{color:#22c55e;}
+  .rank-rh{color:#1a9fff;} .rank-bh{color:#ff6bb5;}
   .player-stats{padding:12px 14px;}
   .xp-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
   .xp-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#6b7a99;}
   .xp-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:#fff;}
   .xp-bar-bg{height:5px;background:#1e2535;border-radius:3px;margin-bottom:12px;overflow:hidden;}
-  .xp-bar-fill{height:100%;border-radius:3px;transition:width 0.6s ease;}
-  .fill-rh{background:#1a9fff;} .fill-bh{background:#ff6bb5;} .fill-eh{background:#f0a500;} .fill-mh{background:#22c55e;}
+  .xp-bar-fill{height:100%;border-radius:3px;}
+  .fill-rh{background:#1a9fff;} .fill-bh{background:#ff6bb5;}
   .stat-row{display:flex;justify-content:space-between;gap:6px;}
   .stat-box{flex:1;background:#0a0e1a;border:1px solid #1e2535;border-radius:5px;padding:7px 8px;text-align:center;}
   .stat-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:#fff;line-height:1;}
@@ -83,6 +77,28 @@
   .lb-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;color:#fff;flex:1;}
   .lb-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:#fff;}
   .lb-pts span{font-size:10px;font-weight:600;color:#6b7a99;margin-left:2px;}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .section-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#6b7a99;}
+  .add-btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:#1a9fff22;color:#1a9fff;border:1px solid #1a9fff44;border-radius:4px;padding:4px 10px;cursor:pointer;}
+  .add-btn:hover{background:#1a9fff33;}
+  .item-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+  .item-row{background:#0d1220;border:1px solid #1e2535;border-radius:6px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
+  .item-row.urgent{border-left:3px solid #ff4444;} .item-row.soon{border-left:3px solid #f0a500;} .item-row.ok{border-left:3px solid #1a9fff;} .item-row.done{border-left:3px solid #22c55e;opacity:0.6;}
+  .check-box{width:16px;height:16px;border:1.5px solid #3a4a66;border-radius:3px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#0a0e1a;}
+  .check-box.checked{background:#22c55e;border-color:#22c55e;}
+  .check-box.checked::after{content:'✓';font-size:10px;color:#fff;font-weight:700;}
+  .item-info{flex:1;min-width:0;}
+  .item-sub{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#6b7a99;margin-bottom:1px;}
+  .item-name{font-size:13px;font-weight:500;color:#e0e6f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .item-due{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;flex-shrink:0;}
+  .due-urgent{color:#ff4444;} .due-soon{color:#f0a500;} .due-ok{color:#6b7a99;}
+  .item-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:#1a9fff;flex-shrink:0;min-width:36px;text-align:right;}
+  .who-tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;flex-shrink:0;}
+  .who-rh{background:#1a3a6e33;color:#1a9fff;border:1px solid #1a9fff44;}
+  .who-bh{background:#4a1a3e33;color:#ff6bb5;border:1px solid #ff6bb5;}
+  .who-both{background:#1e2535;color:#6b7a99;border:1px solid #2e3a55;}
+  .empty-state{text-align:center;padding:24px;color:#3a4a66;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+  .loading-state{text-align:center;padding:24px;color:#6b7a99;font-size:13px;}
   .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
   .cal-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:#fff;letter-spacing:1px;}
   .cal-nav{display:flex;gap:6px;}
@@ -108,27 +124,17 @@
   .ev-rh{background:#1a3a6e;color:#1a9fff;} .ev-bh{background:#4a1a3e;color:#ff6bb5;} .ev-eh{background:#3a2a0a;color:#f0a500;} .ev-mh{background:#0a2a10;color:#22c55e;} .ev-fam{background:#1a0d2e;color:#c084fc;}
   .add-event-btn{width:100%;background:none;border:1px dashed #1e2535;border-radius:5px;padding:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#6b7a99;cursor:pointer;margin-top:4px;}
   .add-event-btn:hover{border-color:#1a9fff;color:#1a9fff;}
-  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-  .section-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#6b7a99;}
-  .add-btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:#1a9fff22;color:#1a9fff;border:1px solid #1a9fff44;border-radius:4px;padding:4px 10px;cursor:pointer;}
-  .add-btn:hover{background:#1a9fff33;}
-  .item-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
-  .item-row{background:#0d1220;border:1px solid #1e2535;border-radius:6px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
-  .item-row.urgent{border-left:3px solid #ff4444;} .item-row.soon{border-left:3px solid #f0a500;} .item-row.ok{border-left:3px solid #1a9fff;} .item-row.done{border-left:3px solid #22c55e;opacity:0.6;}
-  .check-box{width:16px;height:16px;border:1.5px solid #3a4a66;border-radius:3px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#0a0e1a;}
-  .check-box.checked{background:#22c55e;border-color:#22c55e;}
-  .check-box.checked::after{content:'✓';font-size:10px;color:#fff;font-weight:700;}
-  .item-info{flex:1;min-width:0;}
-  .item-sub{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#6b7a99;margin-bottom:1px;}
-  .item-name{font-size:13px;font-weight:500;color:#e0e6f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .item-due{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;flex-shrink:0;}
-  .due-urgent{color:#ff4444;} .due-soon{color:#f0a500;} .due-ok{color:#6b7a99;}
-  .item-pts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:#1a9fff;flex-shrink:0;min-width:36px;text-align:right;}
-  .who-tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;flex-shrink:0;}
-  .who-rh{background:#1a3a6e33;color:#1a9fff;border:1px solid #1a9fff44;}
-  .who-bh{background:#4a1a3e33;color:#ff6bb5;border:1px solid #ff6bb5;}
-  .who-both{background:#1e2535;color:#6b7a99;border:1px solid #2e3a55;}
-  .empty-state{text-align:center;padding:24px;color:#3a4a66;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+  .checklist-section{margin-bottom:20px;}
+  .checklist-header{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#6b7a99;margin-bottom:8px;padding:6px 0;border-bottom:1px solid #1e2535;}
+  .checklist-item{background:#0d1220;border:1px solid #1e2535;border-radius:6px;padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .checklist-item.completed{opacity:0.5;}
+  .check-name{flex:1;font-size:13px;font-weight:500;color:#e0e6f0;}
+  .check-xp{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:#1a9fff;}
+  .goal-card{background:#0d1220;border:1px solid #1e2535;border-radius:8px;padding:14px;margin-bottom:10px;}
+  .goal-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:0.5px;color:#fff;margin-bottom:8px;}
+  .goal-bar-bg{height:8px;background:#1e2535;border-radius:4px;margin-bottom:6px;overflow:hidden;}
+  .goal-bar-fill{height:100%;border-radius:4px;background:#1a9fff;}
+  .goal-meta{display:flex;justify-content:space-between;font-size:11px;color:#6b7a99;}
   .reward-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px;}
   .reward-card{background:#0d1220;border:1px solid #1e2535;border-radius:8px;padding:12px 14px;}
   .reward-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#fff;margin-bottom:4px;}
@@ -143,16 +149,15 @@
   .admin-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
   .admin-label{font-size:13px;color:#e0e6f0;flex:1;}
   .admin-input{background:#0a0e1a;border:1px solid #1e2535;border-radius:4px;padding:5px 8px;font-size:13px;color:#e0e6f0;font-family:'Barlow',sans-serif;width:70px;outline:none;}
-  .admin-input:focus{border-color:#1a9fff;}
   .admin-btn{background:#1a9fff;border:none;border-radius:4px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;}
-  .admin-btn.gold{background:#f0a500;} .admin-btn.green{background:#22c55e;}
+  .admin-btn.gold{background:#f0a500;}
   .reset-week-btn{width:100%;background:#ff444422;border:1px solid #ff444444;border-radius:5px;padding:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#ff4444;cursor:pointer;margin-top:8px;}
   .reset-week-btn:hover{background:#ff444433;}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a9fff;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;border-radius:6px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;}
   .toast.show{opacity:1;}
   .modal-wrap{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,8,20,0.85);z-index:100;align-items:center;justify-content:center;}
   .modal-wrap.open{display:flex;}
-  .modal{background:#0d1220;border:1px solid #1a9fff44;border-radius:10px;padding:18px;width:300px;max-width:90vw;}
+  .modal{background:#0d1220;border:1px solid #1a9fff44;border-radius:10px;padding:18px;width:300px;max-width:90vw;max-height:90vh;overflow-y:auto;}
   .modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:1px;color:#fff;margin-bottom:14px;}
   .form-row{margin-bottom:10px;}
   .form-label{display:block;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#6b7a99;margin-bottom:4px;}
@@ -163,7 +168,7 @@
   .btn-cancel{flex:1;background:#1e2535;border:none;border-radius:5px;padding:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#6b7a99;cursor:pointer;}
   .btn-save{flex:1;background:#1a9fff;border:none;border-radius:5px;padding:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;}
   .btn-save:hover{background:#0e87e8;}
-  @media(max-width:480px){.player-grid{grid-template-columns:1fr;}.admin-grid{grid-template-columns:1fr;}.reward-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:480px){.player-grid{grid-template-columns:1fr;}.admin-grid{grid-template-columns:1fr;}.reward-grid{grid-template-columns:1fr 1fr;}.week-grid{grid-template-columns:repeat(7,1fr);}}
 </style>
 </head>
 <body>
@@ -172,44 +177,63 @@
     <div class="login-wrap">
       <div class="login-logo">HOB <span>HOME OS</span></div>
       <div class="login-sub">Season 1 — Who are you?</div>
-      <div class="profile-select" id="profile-select">
+      <div class="profile-select">
         <div class="profile-btn" onclick="selectProfile('RH')" id="pb-RH"><div class="pb-avatar av-rh">RH</div><div class="pb-name">RH</div><div class="pb-role">Player</div></div>
         <div class="profile-btn" onclick="selectProfile('BH')" id="pb-BH"><div class="pb-avatar av-bh">BH</div><div class="pb-name">BH</div><div class="pb-role">Player</div></div>
         <div class="profile-btn" onclick="selectProfile('EH')" id="pb-EH"><div class="pb-avatar av-eh">EH</div><div class="pb-name">EH</div><div class="pb-role">Admin</div></div>
         <div class="profile-btn" onclick="selectProfile('MH')" id="pb-MH"><div class="pb-avatar av-mh">MH</div><div class="pb-name">MH</div><div class="pb-role">Admin</div></div>
       </div>
-      <div class="login-form" id="login-form" style="display:none;">
-        <div class="form-row"><label class="form-label" id="login-user-label">Username</label><input class="login-input" id="login-username" type="text" placeholder="Username" autocomplete="off" /></div>
-        <div class="form-row"><label class="form-label">Password</label><input class="login-input" id="login-password" type="password" placeholder="Password" /></div>
+      <div id="login-form" style="display:none;width:100%;max-width:360px;">
+        <input class="login-input" id="login-username" type="text" placeholder="Username" autocomplete="off" />
+        <input class="login-input" id="login-password" type="password" placeholder="Password" />
         <button class="login-btn" onclick="doLogin()">Enter</button>
         <div class="login-err" id="login-err"></div>
         <div class="back-link" onclick="resetLogin()">Back</div>
       </div>
     </div>
   </div>
+
   <div id="screen-app" class="screen">
     <div class="header">
       <div class="logo">HOB <span>HOME OS</span></div>
       <div class="header-right">
-        <div class="current-user"><div class="cu-avatar" id="cu-av"></div><div class="cu-name" id="cu-name"></div></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="cu-avatar" id="cu-av"></div>
+          <div class="cu-name" id="cu-name"></div>
+        </div>
         <button class="logout-btn" onclick="logout()">Log out</button>
       </div>
     </div>
-    <div class="nav" id="main-nav">
+    <div class="nav">
       <button class="nav-btn active" onclick="showTab('dashboard',this)">Dashboard</button>
+      <button class="nav-btn" onclick="showTab('checklist',this)">Daily</button>
       <button class="nav-btn" onclick="showTab('calendar',this)">Calendar</button>
       <button class="nav-btn" onclick="showTab('missions',this)">Missions</button>
       <button class="nav-btn" onclick="showTab('ops',this)">Ops</button>
+      <button class="nav-btn" onclick="showTab('goals',this)">Goals</button>
       <button class="nav-btn" onclick="showTab('rewards',this)">Rewards</button>
       <button class="nav-btn admin-only" onclick="showTab('admin',this)" style="display:none;">Admin</button>
     </div>
     <div class="content">
+
       <div id="tab-dashboard" class="tab active">
-        <div class="player-grid" id="player-grid"></div>
+        <div class="player-grid" id="player-grid"><div class="loading-state">Loading...</div></div>
         <div class="lb-card"><div class="lb-title">Weekly leaderboard</div><div id="leaderboard"></div></div>
         <div class="section-title" style="margin-bottom:10px;">Upcoming missions</div>
         <div id="upcoming-list" class="item-list"></div>
       </div>
+
+      <div id="tab-checklist" class="tab">
+        <div class="checklist-section">
+          <div class="checklist-header">Morning routine</div>
+          <div id="morning-list"></div>
+        </div>
+        <div class="checklist-section">
+          <div class="checklist-header">Evening routine</div>
+          <div id="evening-list"></div>
+        </div>
+      </div>
+
       <div id="tab-calendar" class="tab">
         <div class="cal-header">
           <div class="cal-title" id="cal-title"></div>
@@ -227,22 +251,33 @@
           <div class="cal-toggle on t-mh" id="tog-mh" onclick="toggleCal('mh')"><div class="toggle-dot dot-mh"></div>MH</div>
         </div>
         <div class="week-grid" id="week-grid"></div>
-        <button class="add-event-btn" onclick="openAddEvent()">+ Add event</button>
+        <button class="add-event-btn" onclick="openModal('modal-event')">+ Add event</button>
       </div>
+
       <div id="tab-missions" class="tab">
         <div class="section-header">
           <div class="section-title">Active missions</div>
-          <button class="add-btn admin-btn-show" onclick="openAddMission()" style="display:none;">+ Add</button>
+          <button class="add-btn admin-btn-show" onclick="openModal('modal-mission')" style="display:none;">+ Add</button>
         </div>
-        <div id="mission-list" class="item-list"></div>
+        <div id="mission-list" class="item-list"><div class="loading-state">Loading...</div></div>
       </div>
+
       <div id="tab-ops" class="tab">
         <div class="section-header">
           <div class="section-title">Operations</div>
-          <button class="add-btn admin-btn-show" onclick="openAddOp()" style="display:none;">+ Add</button>
+          <button class="add-btn admin-btn-show" onclick="openModal('modal-op')" style="display:none;">+ Add</button>
         </div>
-        <div id="ops-list" class="item-list"></div>
+        <div id="ops-list" class="item-list"><div class="loading-state">Loading...</div></div>
       </div>
+
+      <div id="tab-goals" class="tab">
+        <div class="section-header">
+          <div class="section-title">Long term goals</div>
+          <button class="add-btn admin-btn-show" onclick="openModal('modal-goal')" style="display:none;">+ Add goal</button>
+        </div>
+        <div id="goals-list"><div class="loading-state">Loading...</div></div>
+      </div>
+
       <div id="tab-rewards" class="tab">
         <div class="section-title" style="margin-bottom:12px;">Reward shop</div>
         <div class="reward-grid" id="reward-grid"></div>
@@ -252,10 +287,11 @@
           <div class="item-row ok"><div class="item-info"><div class="item-name">Assignment late</div></div><div class="item-pts">+10</div></div>
           <div class="item-row ok"><div class="item-info"><div class="item-name">Test completed — both sides checked</div></div><div class="item-pts">+30</div></div>
           <div class="item-row ok"><div class="item-info"><div class="item-name">Chore / op completed</div></div><div class="item-pts">+15</div></div>
+          <div class="item-row ok"><div class="item-info"><div class="item-name">Daily checklist item</div></div><div class="item-pts">+5-15</div></div>
           <div class="item-row ok"><div class="item-info"><div class="item-name">7-day streak bonus</div></div><div class="item-pts">+50</div></div>
-          <div class="item-row ok"><div class="item-info"><div class="item-name">Weekly review completed</div></div><div class="item-pts">+20</div></div>
         </div>
       </div>
+
       <div id="tab-admin" class="tab">
         <div class="admin-grid">
           <div class="admin-card">
@@ -264,24 +300,28 @@
             <div class="admin-row"><div class="admin-label">BH</div><input class="admin-input" id="adj-bh" type="number" placeholder="±XP" /><button class="admin-btn" onclick="adjustXp('BH')">Apply</button></div>
           </div>
           <div class="admin-card">
-            <div class="admin-card-title">Bonus awards</div>
-            <div class="admin-row"><div class="admin-label">RH monthly bonus</div><button class="admin-btn gold" onclick="giveBonus('RH',50)">+50 XP</button></div>
-            <div class="admin-row"><div class="admin-label">BH monthly bonus</div><button class="admin-btn gold" onclick="giveBonus('BH',50)">+50 XP</button></div>
+            <div class="admin-card-title">Monthly bonus</div>
+            <div class="admin-row"><div class="admin-label">RH</div><button class="admin-btn gold" onclick="giveBonus('RH',50)">+50 XP</button></div>
+            <div class="admin-row"><div class="admin-label">BH</div><button class="admin-btn gold" onclick="giveBonus('BH',50)">+50 XP</button></div>
           </div>
           <div class="admin-card">
             <div class="admin-card-title">Weekly reset</div>
-            <div style="font-size:12px;color:#6b7a99;margin-bottom:10px;line-height:1.5;">Resets weekly XP for all players. Total XP preserved. Auto-resets Sunday night.</div>
+            <div style="font-size:12px;color:#6b7a99;margin-bottom:10px;line-height:1.5;">Resets weekly XP and ops. Total XP preserved. Runs automatically Sunday midnight.</div>
             <button class="reset-week-btn" onclick="weeklyReset()">Reset this week now</button>
           </div>
           <div class="admin-card">
-            <div class="admin-card-title">Manage passwords</div>
-            <div style="font-size:12px;color:#6b7a99;line-height:1.5;">Passwords are set in the source code. Full auth system with database coming in Phase 3.</div>
+            <div class="admin-card-title">Daily reset</div>
+            <div style="font-size:12px;color:#6b7a99;margin-bottom:10px;line-height:1.5;">Resets daily checklist. Runs automatically at midnight.</div>
+            <button class="reset-week-btn" onclick="dailyReset()">Reset checklist now</button>
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </div>
+
+<!-- MODALS -->
 <div class="modal-wrap" id="modal-mission">
   <div class="modal">
     <div class="modal-title">Add mission</div>
@@ -293,6 +333,7 @@
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-mission')">Cancel</button><button class="btn-save" onclick="saveMission()">Save</button></div>
   </div>
 </div>
+
 <div class="modal-wrap" id="modal-op">
   <div class="modal">
     <div class="modal-title">Add operation</div>
@@ -302,6 +343,7 @@
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-op')">Cancel</button><button class="btn-save" onclick="saveOp()">Save</button></div>
   </div>
 </div>
+
 <div class="modal-wrap" id="modal-event">
   <div class="modal">
     <div class="modal-title">Add event</div>
@@ -311,47 +353,448 @@
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-event')">Cancel</button><button class="btn-save" onclick="saveEvent()">Save</button></div>
   </div>
 </div>
+
+<div class="modal-wrap" id="modal-goal">
+  <div class="modal">
+    <div class="modal-title">Add goal</div>
+    <div class="form-row"><label class="form-label">Goal name</label><input class="form-input" id="g-name" placeholder="e.g. Eagle Scout rank" /></div>
+    <div class="form-row"><label class="form-label">Assigned to</label><select class="form-select" id="g-who"><option value="RH">RH</option><option value="BH">BH</option><option value="EH">EH</option><option value="MH">MH</option></select></div>
+    <div class="form-row"><label class="form-label">Total tasks to complete</label><input class="form-input" id="g-total" type="number" placeholder="e.g. 10" min="1" /></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-goal')">Cancel</button><button class="btn-save" onclick="saveGoal()">Save</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+
 <script>
-const CREDS={RH:{u:'rh',p:'rocket1'},BH:{u:'bh',p:'goals1'},EH:{u:'eh',p:'admin1'},MH:{u:'mh',p:'admin2'}};
-const ADMINS=['EH','MH'];
-const COLORS={RH:['#1a3a6e','#1a9fff'],BH:['#4a1a3e','#ff6bb5'],EH:['#3a2a0a','#f0a500'],MH:['#0a2a10','#22c55e']};
-const state={currentUser:null,players:{RH:{totalXp:0,weekXp:0,streak:0},BH:{totalXp:0,weekXp:0,streak:0},EH:{totalXp:0,weekXp:0,streak:0},MH:{totalXp:0,weekXp:0,streak:0}},missions:[],ops:[],events:[{id:1,name:'No school',date:getDateStr(2),who:'fam'},{id:2,name:'Scouts campout',date:getDateStr(4),who:'rh'},{id:3,name:'Dr appt',date:getDateStr(1),who:'bh'}],calToggles:{fam:true,rh:true,bh:true,eh:true,mh:true},weekOffset:0,nextId:100};
-function getDateStr(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];}
+const SUPABASE_URL = 'https://pdazcqybwaqrptnepvps.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkYXpjcXlid2FxcnB0bmVwdnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NzM5OTIsImV4cCI6MjA4OTI0OTk5Mn0.B4BvGeWDKsPBuP1U6UwZR5VC1XZoXgdSBNhfFOAE82c';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const CREDS = {RH:{u:'rh',p:'rocket1'},BH:{u:'bh',p:'goals1'},EH:{u:'eh',p:'admin1'},MH:{u:'mh',p:'admin2'}};
+const ADMINS = ['EH','MH'];
+const COLORS = {RH:['#1a3a6e','#1a9fff'],BH:['#4a1a3e','#ff6bb5'],EH:['#3a2a0a','#f0a500'],MH:['#0a2a10','#22c55e']};
+
+let currentUser = null;
+let calToggles = {fam:true,rh:true,bh:true,eh:true,mh:true};
+let weekOffset = 0;
+let selectedProfile = null;
+
+function today() { return new Date().toISOString().split('T')[0]; }
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
-let selectedProfile=null;
-function selectProfile(p){selectedProfile=p;document.querySelectorAll('.profile-btn').forEach(b=>b.classList.remove('selected','bh-sel','eh-sel','mh-sel'));const btn=document.getElementById('pb-'+p);btn.classList.add('selected');if(p==='BH')btn.classList.add('bh-sel');if(p==='EH')btn.classList.add('eh-sel');if(p==='MH')btn.classList.add('mh-sel');document.getElementById('login-form').style.display='block';document.getElementById('login-user-label').textContent=p+' — username';document.getElementById('login-username').value='';document.getElementById('login-password').value='';document.getElementById('login-err').textContent='';}
-function resetLogin(){selectedProfile=null;document.querySelectorAll('.profile-btn').forEach(b=>b.classList.remove('selected','bh-sel','eh-sel','mh-sel'));document.getElementById('login-form').style.display='none';document.getElementById('login-err').textContent='';}
-function doLogin(){const u=document.getElementById('login-username').value.trim().toLowerCase();const p=document.getElementById('login-password').value;const c=CREDS[selectedProfile];if(u===c.u&&p===c.p){state.currentUser=selectedProfile;enterApp();}else{document.getElementById('login-err').textContent='Wrong username or password.';}}
-function enterApp(){document.getElementById('screen-login').classList.remove('active');document.getElementById('screen-app').classList.add('active');const u=state.currentUser;const av=document.getElementById('cu-av');av.textContent=u;av.style.background=COLORS[u][0];av.style.color=COLORS[u][1];av.style.border='2px solid '+COLORS[u][1];av.style.width='28px';av.style.height='28px';av.style.borderRadius='50%';av.style.display='flex';av.style.alignItems='center';av.style.justifyContent='center';av.style.fontFamily="'Barlow Condensed',sans-serif";av.style.fontWeight='900';av.style.fontSize='11px';document.getElementById('cu-name').textContent=u;const isAdmin=ADMINS.includes(u);document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAdmin?'block':'none');document.querySelectorAll('.admin-btn-show').forEach(el=>el.style.display=isAdmin?'block':'none');renderAll();}
-function logout(){state.currentUser=null;document.getElementById('screen-app').classList.remove('active');document.getElementById('screen-login').classList.add('active');resetLogin();document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.querySelector('.nav-btn').classList.add('active');document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('tab-dashboard').classList.add('active');}
-function showTab(name,btn){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+name).classList.add('active');if(btn)btn.classList.add('active');if(name==='calendar')renderCalendar();}
+
+function selectProfile(p) {
+  selectedProfile = p;
+  document.querySelectorAll('.profile-btn').forEach(b=>b.classList.remove('selected','bh-sel','eh-sel','mh-sel'));
+  const btn = document.getElementById('pb-'+p);
+  btn.classList.add('selected');
+  if(p==='BH') btn.classList.add('bh-sel');
+  if(p==='EH') btn.classList.add('eh-sel');
+  if(p==='MH') btn.classList.add('mh-sel');
+  document.getElementById('login-form').style.display='block';
+  document.getElementById('login-username').value='';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-err').textContent='';
+}
+
+function resetLogin() {
+  selectedProfile = null;
+  document.querySelectorAll('.profile-btn').forEach(b=>b.classList.remove('selected','bh-sel','eh-sel','mh-sel'));
+  document.getElementById('login-form').style.display='none';
+}
+
+function doLogin() {
+  const u = document.getElementById('login-username').value.trim().toLowerCase();
+  const p = document.getElementById('login-password').value;
+  const c = CREDS[selectedProfile];
+  if(u===c.u && p===c.p) {
+    currentUser = selectedProfile;
+    enterApp();
+  } else {
+    document.getElementById('login-err').textContent = 'Wrong username or password.';
+  }
+}
+
+function enterApp() {
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  const u = currentUser;
+  const av = document.getElementById('cu-av');
+  av.textContent = u;
+  av.style.cssText = `background:${COLORS[u][0]};color:${COLORS[u][1]};border:2px solid ${COLORS[u][1]};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:11px;`;
+  document.getElementById('cu-name').textContent = u;
+  const isAdmin = ADMINS.includes(u);
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=isAdmin?'block':'none');
+  document.querySelectorAll('.admin-btn-show').forEach(el=>el.style.display=isAdmin?'block':'none');
+  checkResets();
+  loadAll();
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  resetLogin();
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.nav-btn').classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-dashboard').classList.add('active');
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name==='calendar') renderCalendar();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+async function checkResets() {
+  const todayStr = today();
+  const { data: players } = await db.from('players').select('*');
+  if(!players || !players.length) return;
+  const p = players[0];
+  if(p.last_reset !== todayStr) {
+    await db.from('checklist').update({done:false,last_reset:todayStr}).neq('id',0);
+    await db.from('players').update({last_reset:todayStr}).neq('id','');
+  }
+  const dayOfWeek = new Date().getDay();
+  if(dayOfWeek === 0) {
+    const lastReset = p.last_reset ? new Date(p.last_reset) : null;
+    const lastSunday = lastReset ? lastReset.getDay() === 0 : true;
+    if(!lastSunday) {
+      await db.from('players').update({week_xp:0}).neq('id','');
+      await db.from('ops').update({done:false}).neq('id',0);
+    }
+  }
+}
+
+async function loadAll() {
+  await Promise.all([loadDashboard(), loadChecklist(), loadMissions(), loadOps(), loadGoals(), renderCalendar()]);
+  renderRewards();
+}
+
+async function loadDashboard() {
+  const { data: players } = await db.from('players').select('*').in('id',['RH','BH']);
+  if(!players) return;
+  const pg = document.getElementById('player-grid');
+  pg.innerHTML = players.sort((a,b)=>a.id>b.id?1:-1).map(p => {
+    const pct = Math.min(100, Math.round((p.week_xp||0)/100*100));
+    const reward = p.id==='RH' ? Math.floor((p.total_xp||0)/100)*60+'m' : '$'+Math.min(10,Math.floor((p.week_xp||0)/100)*10).toFixed(0);
+    const rlbl = p.id==='RH' ? 'Screen earned' : 'Cash earned';
+    return `<div class="player-card">
+      <div class="player-header">
+        <div class="avatar av-${p.id.toLowerCase()}">${p.id}</div>
+        <div><div class="player-name">${p.id}</div><div class="player-rank rank-${p.id.toLowerCase()}">${getRank(p.total_xp||0)}</div></div>
+      </div>
+      <div class="player-stats">
+        <div class="xp-row"><span class="xp-label">XP this week</span><span class="xp-val">${p.week_xp||0} / 100</span></div>
+        <div class="xp-bar-bg"><div class="xp-bar-fill fill-${p.id.toLowerCase()}" style="width:${pct}%"></div></div>
+        <div class="stat-row">
+          <div class="stat-box"><div class="stat-num">${p.total_xp||0}</div><div class="stat-lbl">Total XP</div></div>
+          <div class="stat-box"><div class="stat-num">${p.streak||0}</div><div class="stat-lbl">Streak</div></div>
+          <div class="stat-box"><div class="stat-num">${reward}</div><div class="stat-lbl">${rlbl}</div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const sorted = [...players].sort((a,b)=>(b.week_xp||0)-(a.week_xp||0));
+  document.getElementById('leaderboard').innerHTML = sorted.map((p,i)=>`
+    <div class="lb-row">
+      <div class="lb-pos ${i===0?'gold':'silver'}">${i+1}</div>
+      <div class="lb-name">${p.id}</div>
+      <div class="lb-pts">${p.week_xp||0} <span>XP</span></div>
+    </div>`).join('');
+
+  const { data: missions } = await db.from('missions').select('*').eq('done',false).order('due_date');
+  const ul = document.getElementById('upcoming-list');
+  if(!missions||!missions.length){ul.innerHTML='<div class="empty-state">No active missions</div>';return;}
+  ul.innerHTML = missions.slice(0,4).map(m=>missionHTML(m)).join('');
+}
+
+async function loadChecklist() {
+  const { data: items } = await db.from('checklist').select('*').eq('player_id','RH').order('id');
+  if(!items) return;
+  const morning = items.filter(i=>i.time_of_day==='morning');
+  const evening = items.filter(i=>i.time_of_day==='evening');
+  document.getElementById('morning-list').innerHTML = morning.map(i=>checklistHTML(i)).join('') || '<div class="empty-state">None</div>';
+  document.getElementById('evening-list').innerHTML = evening.map(i=>checklistHTML(i)).join('') || '<div class="empty-state">None</div>';
+}
+
+function checklistHTML(item) {
+  return `<div class="checklist-item ${item.done?'completed':''}" id="cl-${item.id}">
+    <div class="check-box ${item.done?'checked':''}" onclick="toggleChecklist(${item.id},${item.done},${item.xp})"></div>
+    <div class="check-name" style="${item.done?'text-decoration:line-through;color:#3a4a66':''}">${item.name}</div>
+    <div class="check-xp">+${item.xp}</div>
+  </div>`;
+}
+
+async function toggleChecklist(id, isDone, xp) {
+  const newDone = !isDone;
+  await db.from('checklist').update({done:newDone}).eq('id',id);
+  const delta = newDone ? xp : -xp;
+  const { data: p } = await db.from('players').select('total_xp,week_xp').eq('id','RH').single();
+  await db.from('players').update({
+    total_xp: Math.max(0,(p.total_xp||0)+delta),
+    week_xp: Math.max(0,(p.week_xp||0)+delta)
+  }).eq('id','RH');
+  if(newDone) showToast('RH earned +'+xp+' XP!');
+  loadChecklist();
+  loadDashboard();
+}
+
+async function loadMissions() {
+  const { data: missions } = await db.from('missions').select('*').order('due_date');
+  const el = document.getElementById('mission-list');
+  if(!missions||!missions.length){el.innerHTML='<div class="empty-state">No missions yet</div>';return;}
+  const sorted = [...missions].sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    return getDays(a.due_date)-getDays(b.due_date);
+  });
+  el.innerHTML = sorted.map(m=>missionHTML(m)).join('');
+}
+
+function missionHTML(m) {
+  const days = getDays(m.due_date);
+  const urg = m.done?'done':urgClass(days);
+  const who = m.assigned_to||'RH';
+  return `<div class="item-row ${urg}">
+    <div class="check-box ${m.done?'checked':''}" onclick="toggleMission(${m.id},${m.done},${m.xp},'${m.assigned_to}','${m.due_date}')"></div>
+    <div class="item-info">
+      <div class="item-sub">${m.subject||'General'} · ${m.type||'assignment'}</div>
+      <div class="item-name" style="${m.done?'text-decoration:line-through;color:#3a4a66':''}">${m.name}</div>
+    </div>
+    <div class="who-tag who-${who.toLowerCase()}">${who}</div>
+    <div class="item-due ${m.done?'due-ok':dueClass(days)}">${m.done?'Done':dueLabel(days)}</div>
+    <div class="item-pts" style="${m.done?'color:#22c55e':''}">+${m.xp}</div>
+  </div>`;
+}
+
+async function toggleMission(id, isDone, xp, who, dueDate) {
+  const newDone = !isDone;
+  await db.from('missions').update({done:newDone}).eq('id',id);
+  const target = who==='Both'?'RH':who;
+  const days = getDays(dueDate);
+  const earnedXp = days>=0 ? xp : Math.round(xp*0.4);
+  const delta = newDone ? earnedXp : -earnedXp;
+  const { data: p } = await db.from('players').select('total_xp,week_xp').eq('id',target).single();
+  await db.from('players').update({
+    total_xp: Math.max(0,(p.total_xp||0)+delta),
+    week_xp: Math.max(0,(p.week_xp||0)+delta)
+  }).eq('id',target);
+  if(newDone) showToast(target+' earned +'+earnedXp+' XP!');
+  loadMissions(); loadDashboard();
+}
+
+async function loadOps() {
+  const { data: ops } = await db.from('ops').select('*').order('id');
+  const el = document.getElementById('ops-list');
+  if(!ops||!ops.length){el.innerHTML='<div class="empty-state">No ops yet</div>';return;}
+  el.innerHTML = ops.map(op=>`
+    <div class="item-row ok">
+      <div class="check-box ${op.done?'checked':''}" onclick="toggleOp(${op.id},${op.done},'${op.assigned_to}')" style="border-color:${op.assigned_to==='BH'?'#ff6bb544':'#1a9fff44'}"></div>
+      <div class="item-info">
+        <div class="item-sub">${op.frequency}</div>
+        <div class="item-name" style="${op.done?'text-decoration:line-through;color:#3a4a66':''}">${op.name}</div>
+      </div>
+      <div class="who-tag who-${op.assigned_to.toLowerCase()}">${op.assigned_to}</div>
+      <div class="item-pts" style="${op.assigned_to==='BH'?'color:#ff6bb5':'color:#1a9fff'}">+15</div>
+    </div>`).join('');
+}
+
+async function toggleOp(id, isDone, who) {
+  const newDone = !isDone;
+  await db.from('ops').update({done:newDone}).eq('id',id);
+  const targets = who==='Both'?['RH','BH']:[who];
+  const delta = newDone?15:-15;
+  for(const t of targets) {
+    const { data: p } = await db.from('players').select('total_xp,week_xp').eq('id',t).single();
+    await db.from('players').update({
+      total_xp: Math.max(0,(p.total_xp||0)+delta),
+      week_xp: Math.max(0,(p.week_xp||0)+delta)
+    }).eq('id',t);
+  }
+  if(newDone) showToast('Op complete! +15 XP');
+  loadOps(); loadDashboard();
+}
+
+async function loadGoals() {
+  const { data: goals } = await db.from('goals').select('*').order('created_at');
+  const el = document.getElementById('goals-list');
+  if(!goals||!goals.length){el.innerHTML='<div class="empty-state">No goals yet — add one above</div>';return;}
+  el.innerHTML = goals.map(g=>{
+    const pct = g.total_tasks>0 ? Math.round((g.completed_tasks/g.total_tasks)*100) : 0;
+    const color = COLORS[g.player_id]?COLORS[g.player_id][1]:'#1a9fff';
+    return `<div class="goal-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="goal-name">${g.name}</div>
+        <div class="who-tag who-${g.player_id.toLowerCase()}">${g.player_id}</div>
+      </div>
+      <div class="goal-bar-bg"><div class="goal-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="goal-meta">
+        <span>${g.completed_tasks} of ${g.total_tasks} tasks</span>
+        <span>${pct}% complete</span>
+      </div>
+      ${ADMINS.includes(currentUser)?`<div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="add-btn" onclick="updateGoalProgress(${g.id},${g.completed_tasks},${g.total_tasks},1)">+ Task done</button>
+        <button class="add-btn" style="color:#ff4444;border-color:#ff444444;" onclick="updateGoalProgress(${g.id},${g.completed_tasks},${g.total_tasks},-1)">Undo</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function updateGoalProgress(id, completed, total, delta) {
+  const newCompleted = Math.min(total, Math.max(0, completed+delta));
+  await db.from('goals').update({completed_tasks:newCompleted}).eq('id',id);
+  if(newCompleted===total) showToast('Goal complete!');
+  loadGoals();
+}
+
+async function renderCalendar() {
+  const { data: events } = await db.from('events').select('*');
+  const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+  const monday = new Date(todayDate);
+  monday.setDate(todayDate.getDate()-((todayDate.getDay()+6)%7)+weekOffset*7);
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const endOfWeek = new Date(monday); endOfWeek.setDate(monday.getDate()+6);
+  document.getElementById('cal-title').textContent = months[monday.getMonth()]+' '+monday.getDate()+' – '+months[endOfWeek.getMonth()]+' '+endOfWeek.getDate();
+  const grid = document.getElementById('week-grid');
+  grid.innerHTML = '';
+  for(let i=0;i<7;i++){
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    const ds = d.toISOString().split('T')[0];
+    const isToday = d.getTime()===todayDate.getTime();
+    const dayEvents = (events||[]).filter(ev=>ev.event_date===ds&&calToggles[ev.calendar]);
+    const col = document.createElement('div');
+    col.className = 'day-col'+(isToday?' today':'');
+    col.innerHTML = `<div class="day-name">${days[i]}</div><div class="day-num">${d.getDate()}</div>`+
+      dayEvents.map(ev=>`<div class="cal-event ev-${ev.calendar}">${ev.name}</div>`).join('');
+    grid.appendChild(col);
+  }
+}
+
+function changeWeek(dir){if(dir===0)weekOffset=0;else weekOffset+=dir;renderCalendar();}
+function toggleCal(who){calToggles[who]=!calToggles[who];const tog=document.getElementById('tog-'+who);if(calToggles[who])tog.classList.add('on');else tog.classList.remove('on');renderCalendar();}
+
+function renderRewards(){
+  document.getElementById('reward-grid').innerHTML=[
+    {name:'Screen time',desc:'RH earns 60 min per 100 XP',cost:100,unit:'= 1 hour',color:'#1a9fff'},
+    {name:'Cash',desc:'BH earns $10 per 100 weekly XP',cost:100,unit:'= $10 max/week',color:'#ff6bb5'},
+    {name:'Extra screen time',desc:'Bonus screen time on top of base',cost:50,unit:'= +30 min',color:'#f0a500'},
+    {name:'Overtime pay',desc:'Extra cash beyond weekly max',cost:150,unit:'= +$5 bonus',color:'#22c55e'},
+    {name:'Custom reward',desc:'Parent-approved special request',cost:200,unit:'Talk to admin',color:'#a855f7'}
+  ].map(r=>`<div class="reward-card">
+    <div class="reward-name" style="color:${r.color}">${r.name}</div>
+    <div class="reward-desc">${r.desc}</div>
+    <div class="reward-cost" style="color:${r.color}">${r.cost} XP</div>
+    <div class="reward-sub">${r.unit}</div>
+    <button class="redeem-btn" style="border-color:${r.color}44;color:${r.color}" onclick="showToast('Request sent to admin!')">Redeem</button>
+  </div>`).join('');
+}
+
+async function adjustXp(player) {
+  const val = parseInt(document.getElementById('adj-'+player.toLowerCase()).value)||0;
+  const { data: p } = await db.from('players').select('total_xp,week_xp').eq('id',player).single();
+  await db.from('players').update({
+    total_xp: Math.max(0,(p.total_xp||0)+val),
+    week_xp: Math.max(0,(p.week_xp||0)+val)
+  }).eq('id',player);
+  document.getElementById('adj-'+player.toLowerCase()).value='';
+  showToast(player+' XP adjusted by '+val);
+  loadDashboard();
+}
+
+async function giveBonus(player, xp) {
+  const { data: p } = await db.from('players').select('total_xp,week_xp').eq('id',player).single();
+  await db.from('players').update({
+    total_xp: (p.total_xp||0)+xp,
+    week_xp: (p.week_xp||0)+xp
+  }).eq('id',player);
+  showToast('Monthly bonus! '+player+' +'+xp+' XP');
+  loadDashboard();
+}
+
+async function weeklyReset() {
+  await db.from('players').update({week_xp:0}).neq('id','');
+  await db.from('ops').update({done:false}).neq('id',0);
+  showToast('Weekly reset complete.');
+  loadAll();
+}
+
+async function dailyReset() {
+  await db.from('checklist').update({done:false}).neq('id',0);
+  showToast('Daily checklist reset.');
+  loadChecklist();
+}
+
+async function saveMission() {
+  const name = document.getElementById('m-name').value.trim();
+  if(!name) return;
+  const type = document.getElementById('m-type').value;
+  await db.from('missions').insert({
+    subject: document.getElementById('m-subject').value.trim(),
+    name, due_date: document.getElementById('m-due').value||null,
+    type, assigned_to: document.getElementById('m-who').value,
+    done: false, xp: type==='test'?30:25
+  });
+  closeModal('modal-mission');
+  document.getElementById('m-name').value='';
+  document.getElementById('m-subject').value='';
+  showToast('Mission added.');
+  loadMissions(); loadDashboard();
+}
+
+async function saveOp() {
+  const name = document.getElementById('op-name').value.trim();
+  if(!name) return;
+  await db.from('ops').insert({
+    name, assigned_to: document.getElementById('op-who').value,
+    frequency: document.getElementById('op-freq').value, done: false
+  });
+  closeModal('modal-op');
+  document.getElementById('op-name').value='';
+  showToast('Op added.');
+  loadOps();
+}
+
+async function saveEvent() {
+  const name = document.getElementById('ev-name').value.trim();
+  const date = document.getElementById('ev-date').value;
+  if(!name||!date) return;
+  await db.from('events').insert({name, event_date:date, calendar:document.getElementById('ev-who').value});
+  closeModal('modal-event');
+  document.getElementById('ev-name').value='';
+  showToast('Event added.');
+  renderCalendar();
+}
+
+async function saveGoal() {
+  const name = document.getElementById('g-name').value.trim();
+  const total = parseInt(document.getElementById('g-total').value)||1;
+  if(!name) return;
+  await db.from('goals').insert({
+    name, player_id: document.getElementById('g-who').value,
+    total_tasks: total, completed_tasks: 0
+  });
+  closeModal('modal-goal');
+  document.getElementById('g-name').value='';
+  document.getElementById('g-total').value='';
+  showToast('Goal added.');
+  loadGoals();
+}
+
 function getRank(xp){if(xp>=500)return'Champion';if(xp>=300)return'Diamond I';if(xp>=200)return'Platinum II';if(xp>=100)return'Gold III';if(xp>=50)return'Silver IV';return'Bronze V';}
-function renderAll(){renderDashboard();renderMissions();renderOps();renderCalendar();renderRewards();}
-function renderDashboard(){const pg=document.getElementById('player-grid');pg.innerHTML=['RH','BH'].map(p=>{const pl=state.players[p];const pct=Math.min(100,Math.round(pl.weekXp/100*100));const reward=p==='RH'?Math.floor(pl.totalXp/100)*60+'m':'$'+Math.min(10,Math.floor(pl.weekXp/100)*10).toFixed(0);const rlbl=p==='RH'?'Screen earned':'Cash earned';return`<div class="player-card"><div class="player-header"><div class="avatar av-${p.toLowerCase()}">${p}</div><div><div class="player-name">${p}</div><div class="player-rank rank-${p.toLowerCase()}">${getRank(pl.totalXp)}</div></div></div><div class="player-stats"><div class="xp-row"><span class="xp-label">XP this week</span><span class="xp-val">${pl.weekXp} / 100</span></div><div class="xp-bar-bg"><div class="xp-bar-fill fill-${p.toLowerCase()}" style="width:${pct}%"></div></div><div class="stat-row"><div class="stat-box"><div class="stat-num">${pl.totalXp}</div><div class="stat-lbl">Total XP</div></div><div class="stat-box"><div class="stat-num">${pl.streak}</div><div class="stat-lbl">Streak</div></div><div class="stat-box"><div class="stat-num">${reward}</div><div class="stat-lbl">${rlbl}</div></div></div></div></div>`;}).join('');const sorted=['RH','BH'].sort((a,b)=>state.players[b].weekXp-state.players[a].weekXp);document.getElementById('leaderboard').innerHTML=sorted.map((p,i)=>`<div class="lb-row"><div class="lb-pos ${i===0?'gold':'silver'}">${i+1}</div><div class="lb-name">${p}</div><div class="lb-pts">${state.players[p].weekXp} <span>XP</span></div></div>`).join('');const upcoming=state.missions.filter(m=>!m.done).sort((a,b)=>getDays(a.due)-getDays(b.due)).slice(0,4);const ul=document.getElementById('upcoming-list');ul.innerHTML=upcoming.length?upcoming.map(m=>missionHTML(m)).join(''):'<div class="empty-state">No active missions</div>';}
 function getDays(d){if(!d)return 999;const n=new Date();n.setHours(0,0,0,0);const due=new Date(d+'T00:00:00');return Math.round((due-n)/86400000);}
 function urgClass(days){if(days<=1)return'urgent';if(days<=3)return'soon';return'ok';}
 function dueLabel(days){if(days<0)return'Overdue';if(days===0)return'Today';if(days===1)return'Tomorrow';return'In '+days+'d';}
 function dueClass(days){if(days<=1)return'due-urgent';if(days<=3)return'due-soon';return'due-ok';}
-function missionHTML(m){const days=getDays(m.due);const urg=m.done?'done':urgClass(days);const who=m.who||'RH';return`<div class="item-row ${urg}"><div class="check-box ${m.done?'checked':''}" onclick="toggleMission(${m.id})"></div><div class="item-info"><div class="item-sub">${m.subject||'General'} · ${m.type||'assignment'}</div><div class="item-name" style="${m.done?'text-decoration:line-through;color:#3a4a66':''}">${m.name}</div></div><div class="who-tag who-${who.toLowerCase()}">${who}</div><div class="item-due ${m.done?'due-ok':dueClass(days)}">${m.done?'Done':dueLabel(days)}</div><div class="item-pts" style="${m.done?'color:#22c55e':''}">+${m.xp}</div></div>`;}
-function renderMissions(){const el=document.getElementById('mission-list');if(!state.missions.length){el.innerHTML='<div class="empty-state">No missions yet</div>';return;}const sorted=[...state.missions].sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return getDays(a.due)-getDays(b.due);});el.innerHTML=sorted.map(m=>missionHTML(m)).join('');}
-function toggleMission(id){const m=state.missions.find(x=>x.id===id);if(!m)return;m.done=!m.done;const target=m.who==='Both'?'RH':m.who;const days=getDays(m.due);const xp=days>=0?m.xp:Math.round(m.xp*0.4);const delta=m.done?xp:-xp;state.players[target].totalXp=Math.max(0,state.players[target].totalXp+delta);state.players[target].weekXp=Math.max(0,state.players[target].weekXp+delta);if(m.done)showToast(target+' earned +'+xp+' XP!');renderMissions();renderDashboard();}
-function renderOps(){const el=document.getElementById('ops-list');if(!state.ops.length){el.innerHTML='<div class="empty-state">No ops yet</div>';return;}el.innerHTML=state.ops.map(op=>`<div class="item-row ok"><div class="check-box ${op.done?'checked':''}" onclick="toggleOp(${op.id})" style="border-color:${op.who==='BH'?'#ff6bb544':'#1a9fff44'}"></div><div class="item-info"><div class="item-sub">${op.freq}</div><div class="item-name" style="${op.done?'text-decoration:line-through;color:#3a4a66':''}">${op.name}</div></div><div class="who-tag who-${op.who.toLowerCase()}">${op.who}</div><div class="item-pts" style="${op.who==='BH'?'color:#ff6bb5':'color:#1a9fff'}">+15</div></div>`).join('');}
-function toggleOp(id){const op=state.ops.find(x=>x.id===id);if(!op)return;op.done=!op.done;const targets=op.who==='Both'?['RH','BH']:[op.who];const delta=op.done?15:-15;targets.forEach(t=>{state.players[t].totalXp=Math.max(0,state.players[t].totalXp+delta);state.players[t].weekXp=Math.max(0,state.players[t].weekXp+delta);});if(op.done)showToast('Op complete! +15 XP');renderOps();renderDashboard();}
-function renderCalendar(){const today=new Date();today.setHours(0,0,0,0);const monday=new Date(today);monday.setDate(today.getDate()-((today.getDay()+6)%7)+state.weekOffset*7);const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const endOfWeek=new Date(monday);endOfWeek.setDate(monday.getDate()+6);document.getElementById('cal-title').textContent=months[monday.getMonth()]+' '+monday.getDate()+' – '+months[endOfWeek.getMonth()]+' '+endOfWeek.getDate();const grid=document.getElementById('week-grid');grid.innerHTML='';for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);const ds=d.toISOString().split('T')[0];const isToday=d.getTime()===today.getTime();const dayEvents=state.events.filter(ev=>ev.date===ds&&state.calToggles[ev.who]);const col=document.createElement('div');col.className='day-col'+(isToday?' today':'');col.innerHTML=`<div class="day-name">${days[i]}</div><div class="day-num">${d.getDate()}</div>`+dayEvents.map(ev=>`<div class="cal-event ev-${ev.who}">${ev.name}</div>`).join('');grid.appendChild(col);}}
-function changeWeek(dir){if(dir===0)state.weekOffset=0;else state.weekOffset+=dir;renderCalendar();}
-function toggleCal(who){state.calToggles[who]=!state.calToggles[who];const tog=document.getElementById('tog-'+who);if(state.calToggles[who])tog.classList.add('on');else tog.classList.remove('on');renderCalendar();}
-function renderRewards(){document.getElementById('reward-grid').innerHTML=[{name:'Screen time',desc:'RH earns 60 min per 100 XP',cost:100,unit:'= 1 hour',color:'#1a9fff'},{name:'Cash',desc:'BH earns $10 per 100 weekly XP',cost:100,unit:'= $10 max/week',color:'#ff6bb5'},{name:'Extra screen time',desc:'Bonus screen time on top of base',cost:50,unit:'= +30 min',color:'#f0a500'},{name:'Overtime pay',desc:'Extra cash beyond weekly max',cost:150,unit:'= +$5 bonus',color:'#22c55e'},{name:'Custom reward',desc:'Parent-approved special request',cost:200,unit:'Talk to admin',color:'#a855f7'}].map(r=>`<div class="reward-card"><div class="reward-name" style="color:${r.color}">${r.name}</div><div class="reward-desc">${r.desc}</div><div class="reward-cost" style="color:${r.color}">${r.cost} XP</div><div class="reward-sub">${r.unit}</div><button class="redeem-btn" style="border-color:${r.color}44;color:${r.color}" onclick="showToast('Request sent to admin!')">Redeem</button></div>`).join('');}
-function adjustXp(player){const val=parseInt(document.getElementById('adj-'+player.toLowerCase()).value)||0;state.players[player].totalXp=Math.max(0,state.players[player].totalXp+val);state.players[player].weekXp=Math.max(0,state.players[player].weekXp+val);document.getElementById('adj-'+player.toLowerCase()).value='';showToast(player+' XP adjusted by '+val);renderDashboard();}
-function giveBonus(player,xp){state.players[player].totalXp+=xp;state.players[player].weekXp+=xp;showToast('Monthly bonus! '+player+' +'+xp+' XP');renderDashboard();}
-function weeklyReset(){['RH','BH','EH','MH'].forEach(p=>state.players[p].weekXp=0);state.ops.forEach(op=>op.done=false);showToast('Weekly reset complete. New season starts now.');renderAll();}
-function openAddMission(){document.getElementById('m-subject').value='';document.getElementById('m-name').value='';document.getElementById('m-due').value='';document.getElementById('modal-mission').classList.add('open');}
-function openAddOp(){document.getElementById('op-name').value='';document.getElementById('modal-op').classList.add('open');}
-function openAddEvent(){document.getElementById('ev-name').value='';document.getElementById('ev-date').value='';document.getElementById('modal-event').classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-function saveMission(){const name=document.getElementById('m-name').value.trim();if(!name)return;const type=document.getElementById('m-type').value;state.missions.push({id:state.nextId++,subject:document.getElementById('m-subject').value.trim(),name,due:document.getElementById('m-due').value,type,who:document.getElementById('m-who').value,done:false,xp:type==='test'?30:25});closeModal('modal-mission');renderMissions();renderDashboard();showToast('Mission added.');}
-function saveOp(){const name=document.getElementById('op-name').value.trim();if(!name)return;state.ops.push({id:state.nextId++,name,who:document.getElementById('op-who').value,freq:document.getElementById('op-freq').value,done:false});closeModal('modal-op');renderOps();showToast('Op added.');}
-function saveEvent(){const name=document.getElementById('ev-name').value.trim();const date=document.getElementById('ev-date').value;if(!name||!date)return;state.events.push({id:state.nextId++,name,date,who:document.getElementById('ev-who').value});closeModal('modal-event');renderCalendar();showToast('Event added.');}
+
 document.addEventListener('keydown',e=>{if(e.key==='Enter'){const lf=document.getElementById('login-form');if(lf.style.display!=='none')doLogin();}});
 </script>
 </body>
