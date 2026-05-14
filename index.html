@@ -12,6 +12,15 @@
   body{font-family:'Barlow',sans-serif;background:var(--rl-bg);min-height:100vh;color:var(--rl-text);margin:0;}
   .app{min-height:100vh;}
   .screen{display:none;} .screen.active{display:block;}
+  .gate-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;gap:0;}
+  .gate-logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-bottom:6px;}
+  .gate-logo span{color:#1a9fff;}
+  .gate-sub{font-size:11px;color:#6b7a99;letter-spacing:2px;text-transform:uppercase;margin-bottom:40px;}
+  .gate-input{width:100%;max-width:320px;background:#0d1220;border:1px solid #1e2535;border-radius:8px;padding:13px 16px;color:#fff;font-size:15px;font-family:'Barlow',sans-serif;outline:none;text-align:center;letter-spacing:2px;margin-bottom:12px;}
+  .gate-input:focus{border-color:#1a9fff;}
+  .gate-btn{width:100%;max-width:320px;background:#1a9fff;color:#fff;border:none;border-radius:8px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background 0.15s;}
+  .gate-btn:hover{background:#0e87e8;}
+  .gate-err{font-size:11px;color:#ff4f4f;margin-top:10px;min-height:16px;letter-spacing:.5px;}
   .login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;}
   .login-logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-bottom:6px;}
   .login-logo span{color:#1a9fff;}
@@ -179,7 +188,19 @@
 </head>
 <body>
 <div class="app">
-  <div id="screen-login" class="screen active">
+
+  <div id="screen-gate" class="screen active">
+    <div class="gate-wrap">
+      <div class="gate-logo">HOB <span>HOME OS</span></div>
+      <div class="gate-sub">Family access only</div>
+      <input class="gate-input" id="gate-input" type="password" placeholder="Enter passcode" autocomplete="off"
+        onkeydown="if(event.key==='Enter')checkGate()" />
+      <button class="gate-btn" onclick="checkGate()">Enter</button>
+      <div class="gate-err" id="gate-err"></div>
+    </div>
+  </div>
+
+  <div id="screen-login" class="screen">
     <div class="login-wrap">
       <div class="login-logo">HOB <span>HOME OS</span></div>
       <div class="login-sub">Season 1 — Who are you?</div>
@@ -387,6 +408,39 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Gate ──────────────────────────────────────────────────────────────
+const GATE_HASH = '35602208e86ac7d6b3a63780a9538a9d1763a646d5b9f3930a0548e0983e0ca6';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// Check sessionStorage so gate only appears once per browser session
+if(sessionStorage.getItem('hob_gate') === '1') {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('screen-gate').classList.remove('active');
+    document.getElementById('screen-login').classList.add('active');
+  });
+}
+
+async function checkGate() {
+  const val = document.getElementById('gate-input').value.trim().toLowerCase();
+  const hash = await sha256(val);
+  if(hash === GATE_HASH) {
+    sessionStorage.setItem('hob_gate', '1');
+    document.getElementById('screen-gate').classList.remove('active');
+    document.getElementById('screen-login').classList.add('active');
+    document.getElementById('gate-input').value = '';
+    document.getElementById('gate-err').textContent = '';
+  } else {
+    document.getElementById('gate-err').textContent = 'Incorrect passcode.';
+    document.getElementById('gate-input').value = '';
+    document.getElementById('gate-input').focus();
+  }
+}
+// ─────────────────────────────────────────────────────────────────────
+
 const SUPABASE_URL = 'https://pdazcqybwaqrptnepvps.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkYXpjcXlid2FxcnB0bmVwdnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NzM5OTIsImV4cCI6MjA4OTI0OTk5Mn0.B4BvGeWDKsPBuP1U6UwZR5VC1XZoXgdSBNhfFOAE82c';
 const { createClient } = supabase;
