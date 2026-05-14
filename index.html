@@ -169,6 +169,12 @@
   .btn-save{flex:1;background:#1a9fff;border:none;border-radius:5px;padding:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;}
   .btn-save:hover{background:#0e87e8;}
   @media(max-width:480px){.player-grid{grid-template-columns:1fr;}.admin-grid{grid-template-columns:1fr;}.reward-grid{grid-template-columns:1fr 1fr;}.week-grid{grid-template-columns:repeat(7,1fr);}}
+  .item-info{cursor:pointer;}
+  .item-info:hover .item-name{color:#1a9fff;}
+  .dd-row{display:grid;grid-template-columns:72px 1fr;gap:7px 10px;font-size:12px;margin-bottom:2px;}
+  .dd-label{color:#6b7a99;text-transform:uppercase;font-size:10px;letter-spacing:.8px;padding-top:1px;}
+  .dd-link{display:inline-block;margin-top:14px;color:#1a9fff;font-size:11px;font-weight:700;text-decoration:none;border:1px solid #1a9fff55;padding:7px 14px;border-radius:6px;letter-spacing:.5px;transition:background 0.15s;}
+  .dd-link:hover{background:#1a9fff22;}
 </style>
 </head>
 <body>
@@ -364,6 +370,20 @@
   </div>
 </div>
 
+<div class="modal-wrap" id="modal-detail">
+  <div class="modal" style="width:340px;">
+    <div class="modal-title" id="dd-title">Mission</div>
+    <div id="dd-subject" style="font-size:10px;color:#1a9fff;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;"></div>
+    <div id="dd-rows"></div>
+    <div id="dd-link-wrap" style="display:none;">
+      <a id="dd-link" class="dd-link" href="#" target="_blank">OPEN ASSIGNMENT →</a>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn-cancel" onclick="closeModal('modal-detail')">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -452,6 +472,55 @@ function showTab(name, btn) {
 
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+const CANVAS_COURSE_MAP = {
+  'CHALLENGE LANGUAGE ARTS':291092,'CH LANGUAGE ARTS 07 B':291092,
+  'EARTH SCIENCE':291337,'CH EARTH SCIENCE 07 B':291337,
+  'HONORS BIOLOGY B':288424,'09 ACCELERATED LANG ARTS B':288544,
+  'DRIVER EDUCATION':288801,'FUN APP AND GAME DEVELOPMENT':288846,
+  'INTEGRATED MATH 7/8':291239,'INTEGRATED MATH 7/8 B':291239,
+  'GEOMETRY B':291539,'HONORS US HISTORY B':288603,
+  'SYMPHONIC BAND B':288442,'CADET BAND 07 B':290982,
+  'CH WORLD GEOGRAPHY 07 B':291423,'PHYSICAL ED/HEALTH 07 B':291315
+};
+
+async function openMissionDetail(missionId) {
+  openModal('modal-detail');
+  document.getElementById('dd-title').textContent = 'Loading…';
+  document.getElementById('dd-subject').textContent = '';
+  document.getElementById('dd-rows').innerHTML = '';
+  document.getElementById('dd-link-wrap').style.display = 'none';
+
+  const { data, error } = await db.from('missions').select('*').eq('id', missionId).single();
+  if(error || !data) { document.getElementById('dd-title').textContent = 'Not found'; return; }
+  const m = data;
+
+  document.getElementById('dd-title').textContent = m.name;
+  document.getElementById('dd-subject').textContent = m.subject || '';
+
+  const fmt = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : '—';
+  const overdue = m.due_date && m.due_date < today() && !m.done;
+  const dueColor = overdue ? '#ff4f4f' : 'var(--rl-text)';
+  const whoName = m.assigned_to==='BH'?'Brynn':m.assigned_to==='RH'?'Reese':m.assigned_to==='EH'?'Ellie':'Mike';
+
+  document.getElementById('dd-rows').innerHTML = `
+    <div class="dd-row"><span class="dd-label">Due</span><span style="color:${dueColor}">${fmt(m.due_date)}${overdue?' · Overdue':''}</span></div>
+    <div class="dd-row"><span class="dd-label">Type</span><span style="text-transform:capitalize">${m.type||'—'}</span></div>
+    <div class="dd-row"><span class="dd-label">For</span><span>${whoName} (${m.assigned_to})</span></div>
+    <div class="dd-row"><span class="dd-label">XP</span><span style="color:#1a9fff;font-weight:700">+${m.xp}</span></div>
+    <div class="dd-row"><span class="dd-label">Status</span><span style="color:${m.done?'#22c55e':'#6b7a99'}">${m.done?'Complete':'Not done'}</span></div>`;
+
+  const cid = CANVAS_COURSE_MAP[m.subject];
+  const linkEl = document.getElementById('dd-link');
+  if(cid) {
+    linkEl.href = `https://rsdmo.instructure.com/courses/${cid}/assignments`;
+    linkEl.textContent = 'OPEN IN CANVAS →';
+  } else {
+    linkEl.href = 'https://rockwoodmo.infinitecampus.org/campus/portal/parents/rockwood.jsp';
+    linkEl.textContent = 'OPEN IN INFINITE CAMPUS →';
+  }
+  document.getElementById('dd-link-wrap').style.display = 'block';
+}
 
 async function checkResets() {
   const todayStr = today();
@@ -565,7 +634,7 @@ function missionHTML(m) {
   const who = m.assigned_to||'RH';
   return `<div class="item-row ${urg}">
     <div class="check-box ${m.done?'checked':''}" onclick="toggleMission(${m.id},${m.done},${m.xp},'${m.assigned_to}','${m.due_date}')"></div>
-    <div class="item-info">
+    <div class="item-info" onclick="openMissionDetail(${m.id})">
       <div class="item-sub">${m.subject||'General'} · ${m.type||'assignment'}</div>
       <div class="item-name" style="${m.done?'text-decoration:line-through;color:#3a4a66':''}">${m.name}</div>
     </div>
