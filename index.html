@@ -396,8 +396,9 @@
     <div class="modal-title" id="dd-title">Mission</div>
     <div id="dd-subject" style="font-size:10px;color:#1a9fff;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;"></div>
     <div id="dd-rows"></div>
-    <div id="dd-link-wrap" style="display:none;">
-      <a id="dd-link" class="dd-link" href="#" target="_blank">OPEN ASSIGNMENT →</a>
+    <div id="dd-link-wrap" style="display:none;flex-direction:column;gap:8px;margin-top:14px;">
+      <a id="dd-link-ic" class="dd-link" href="https://rockwoodmo.infinitecampus.org/campus/portal/parents/rockwood.jsp" target="_blank">OPEN IN INFINITE CAMPUS →</a>
+      <a id="dd-link-canvas" class="dd-link" href="#" target="_blank" style="display:none;">OPEN IN CANVAS →</a>
     </div>
     <div class="modal-actions" style="margin-top:16px;">
       <button class="btn-cancel" onclick="closeModal('modal-detail')">Close</button>
@@ -544,6 +545,7 @@ async function openMissionDetail(missionId) {
   document.getElementById('dd-subject').textContent = '';
   document.getElementById('dd-rows').innerHTML = '';
   document.getElementById('dd-link-wrap').style.display = 'none';
+  document.getElementById('dd-link-canvas').style.display = 'none';
 
   const { data, error } = await db.from('missions').select('*').eq('id', missionId).single();
   if(error || !data) { document.getElementById('dd-title').textContent = 'Not found'; return; }
@@ -565,15 +567,14 @@ async function openMissionDetail(missionId) {
     <div class="dd-row"><span class="dd-label">Status</span><span style="color:${m.done?'#22c55e':'#6b7a99'}">${m.done?'Complete':'Not done'}</span></div>`;
 
   const cid = CANVAS_COURSE_MAP[m.subject];
-  const linkEl = document.getElementById('dd-link');
+  const canvasLink = document.getElementById('dd-link-canvas');
   if(cid) {
-    linkEl.href = `https://rsdmo.instructure.com/courses/${cid}/assignments`;
-    linkEl.textContent = 'OPEN IN CANVAS →';
+    canvasLink.href = `https://rsdmo.instructure.com/courses/${cid}/assignments`;
+    canvasLink.style.display = 'inline-block';
   } else {
-    linkEl.href = 'https://rockwoodmo.infinitecampus.org/campus/portal/parents/rockwood.jsp';
-    linkEl.textContent = 'OPEN IN INFINITE CAMPUS →';
+    canvasLink.style.display = 'none';
   }
-  document.getElementById('dd-link-wrap').style.display = 'block';
+  document.getElementById('dd-link-wrap').style.display = 'flex';
 }
 
 async function checkResets() {
