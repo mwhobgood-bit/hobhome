@@ -397,8 +397,8 @@
     <div id="dd-subject" style="font-size:10px;color:#1a9fff;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;"></div>
     <div id="dd-rows"></div>
     <div id="dd-link-wrap" style="display:none;flex-direction:column;gap:8px;margin-top:14px;">
-      <a id="dd-link-ic" class="dd-link" href="https://rockwoodmo.infinitecampus.org/campus/portal/parents/rockwood.jsp" target="_blank">OPEN IN INFINITE CAMPUS →</a>
-      <a id="dd-link-canvas" class="dd-link" href="#" target="_blank" style="display:none;">OPEN IN CANVAS →</a>
+      <a id="dd-link-ic" class="dd-link" href="https://rockwoodmo.infinitecampus.org/campus/portal/parents/rockwood.jsp" onclick="smartOpen(event,this)">OPEN IN INFINITE CAMPUS →</a>
+      <a id="dd-link-canvas" class="dd-link" href="#" onclick="smartOpen(event,this)" style="display:none;">OPEN IN CANVAS →</a>
     </div>
     <div class="modal-actions" style="margin-top:16px;">
       <button class="btn-cancel" onclick="closeModal('modal-detail')">Close</button>
@@ -439,6 +439,49 @@ async function checkGate() {
     document.getElementById('gate-input').value = '';
     document.getElementById('gate-input').focus();
   }
+}
+// ── Smart link opener ─────────────────────────────────────────────────
+// On desktop: opens in a new tab (normal behavior).
+// On mobile: lets the OS intercept the HTTPS link so the native
+//   Canvas / IC app opens if installed. Falls back to browser if not.
+//   Uses the Android Intent URL for Canvas on Android for better
+//   app-launch reliability.
+function smartOpen(e, anchor) {
+  e.preventDefault();
+  const url = anchor.href;
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  if(!isMobile) {
+    window.open(url, '_blank');
+    return;
+  }
+
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isCanvas = url.includes('instructure.com');
+  const isIC = url.includes('infinitecampus.org');
+
+  if(isAndroid && isCanvas) {
+    // Android Intent URL — opens Canvas Student app directly if installed
+    const intentUrl = url.replace('https://', 'intent://') +
+      '#Intent;scheme=https;package=com.instructure.candroid;' +
+      'S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+    window.location.href = intentUrl;
+    return;
+  }
+
+  if(isAndroid && isIC) {
+    // IC Android app package
+    const intentUrl = url.replace('https://', 'intent://') +
+      '#Intent;scheme=https;package=com.edupoint.studentvue;' +
+      'S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+    window.location.href = intentUrl;
+    return;
+  }
+
+  // iOS (and Android fallback): navigate without _blank so the OS
+  // can intercept via Universal Links and open the native app.
+  // If the app isn't installed, Safari/Chrome opens the web URL.
+  window.location.href = url;
 }
 // ─────────────────────────────────────────────────────────────────────
 
