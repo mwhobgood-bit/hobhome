@@ -177,7 +177,25 @@
   .btn-cancel{flex:1;background:#1e2535;border:none;border-radius:5px;padding:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#6b7a99;cursor:pointer;}
   .btn-save{flex:1;background:#1a9fff;border:none;border-radius:5px;padding:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;}
   .btn-save:hover{background:#0e87e8;}
-  @media(max-width:480px){.player-grid{grid-template-columns:1fr;}.admin-grid{grid-template-columns:1fr;}.reward-grid{grid-template-columns:1fr 1fr;}.week-grid{grid-template-columns:repeat(7,1fr);}}
+  @media(max-width:480px){
+    .player-grid{grid-template-columns:1fr;}
+    .admin-grid{grid-template-columns:1fr;}
+    .reward-grid{grid-template-columns:1fr 1fr;}
+    .week-grid{grid-template-columns:repeat(7,1fr);}
+    .header{position:sticky;top:0;z-index:40;}
+    .nav{position:fixed;bottom:0;left:0;right:0;z-index:50;border-top:1px solid #1e2535;border-bottom:none;padding:2px;}
+    .nav-btn{padding:10px 4px;font-size:10px;letter-spacing:.3px;flex:1;text-align:center;}
+    .content{padding-bottom:72px;}
+    .check-box{width:22px;height:22px;border-radius:5px;}
+    .check-box.checked::after{font-size:13px;}
+    .day-col{min-height:65px;padding:5px 3px;}
+    .day-name{font-size:9px;margin-bottom:1px;}
+    .day-num{font-size:14px;margin-bottom:4px;}
+    .cal-event{font-size:9px;padding:1px 3px;}
+    .item-pts{min-width:28px;}
+    .modal{width:calc(100vw - 32px);max-width:none;border-radius:14px 14px 0 0;position:fixed;bottom:0;left:0;right:0;margin:0;max-height:85vh;}
+    .modal-wrap.open{align-items:flex-end;}
+  }
   .item-info{cursor:pointer;}
   .item-info:hover .item-name{color:#1a9fff;}
   .dd-row{display:grid;grid-template-columns:72px 1fr;gap:7px 10px;font-size:12px;margin-bottom:2px;}
@@ -342,6 +360,10 @@
             <button class="reset-week-btn" onclick="dailyReset()">Reset checklist now</button>
           </div>
         </div>
+        <div class="admin-card" style="margin-top:0;">
+          <div class="admin-card-title" style="display:flex;align-items:center;justify-content:space-between;">Mission Review <button class="add-btn" onclick="loadAdminMissionReview()">Refresh</button></div>
+          <div id="admin-mission-review"><div class="loading-state">Loading...</div></div>
+        </div>
       </div>
 
     </div>
@@ -501,6 +523,7 @@ let selectedProfile = null;
 
 function today() { return new Date().toISOString().split('T')[0]; }
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function isAdmin() { return ADMINS.includes(currentUser); }
 
 function selectProfile(p) {
   selectedProfile = p;
@@ -643,6 +666,7 @@ async function checkResets() {
 async function loadAll() {
   await Promise.all([loadDashboard(), loadChecklist(), loadMissions(), loadOps(), loadGoals(), renderCalendar()]);
   renderRewards();
+  loadAdminMissionReview();
 }
 
 async function loadDashboard() {
@@ -678,7 +702,8 @@ async function loadDashboard() {
       <div class="lb-pts">${p.week_xp||0} <span>XP</span></div>
     </div>`).join('');
 
-  const { data: missions } = await db.from('missions').select('*').eq('done',false).order('due_date');
+  const upcomingQ = db.from('missions').select('*').eq('done',false).order('due_date');
+  const { data: missions } = isAdmin() ? await upcomingQ : await upcomingQ.or(`assigned_to.eq.${currentUser},assigned_to.eq.Both`);
   const ul = document.getElementById('upcoming-list');
   if(!missions||!missions.length){ul.innerHTML='<div class="empty-state">No active missions</div>';return;}
   ul.innerHTML = missions.slice(0,4).map(m=>missionHTML(m)).join('');
@@ -716,7 +741,8 @@ async function toggleChecklist(id, isDone, xp) {
 }
 
 async function loadMissions() {
-  const { data: missions } = await db.from('missions').select('*').order('due_date');
+  const mq = db.from('missions').select('*').order('due_date');
+  const { data: missions } = isAdmin() ? await mq : await mq.or(`assigned_to.eq.${currentUser},assigned_to.eq.Both`);
   const el = document.getElementById('mission-list');
   if(!missions||!missions.length){el.innerHTML='<div class="empty-state">No missions yet</div>';return;}
   const sorted = [...missions].sort((a,b)=>{
@@ -759,7 +785,8 @@ async function toggleMission(id, isDone, xp, who, dueDate) {
 }
 
 async function loadOps() {
-  const { data: ops } = await db.from('ops').select('*').order('id');
+  const oq = db.from('ops').select('*').order('id');
+  const { data: ops } = isAdmin() ? await oq : await oq.or(`assigned_to.eq.${currentUser},assigned_to.eq.Both`);
   const el = document.getElementById('ops-list');
   if(!ops||!ops.length){el.innerHTML='<div class="empty-state">No ops yet</div>';return;}
   el.innerHTML = ops.map(op=>`
@@ -791,7 +818,8 @@ async function toggleOp(id, isDone, who) {
 }
 
 async function loadGoals() {
-  const { data: goals } = await db.from('goals').select('*').order('created_at');
+  const gq = db.from('goals').select('*').order('created_at');
+  const { data: goals } = isAdmin() ? await gq : await gq.eq('player_id', currentUser);
   const el = document.getElementById('goals-list');
   if(!goals||!goals.length){el.innerHTML='<div class="empty-state">No goals yet — add one above</div>';return;}
   el.innerHTML = goals.map(g=>{
@@ -850,19 +878,59 @@ function changeWeek(dir){if(dir===0)weekOffset=0;else weekOffset+=dir;renderCale
 function toggleCal(who){calToggles[who]=!calToggles[who];const tog=document.getElementById('tog-'+who);if(calToggles[who])tog.classList.add('on');else tog.classList.remove('on');renderCalendar();}
 
 function renderRewards(){
-  document.getElementById('reward-grid').innerHTML=[
-    {name:'Screen time',desc:'RH earns 60 min per 100 XP',cost:100,unit:'= 1 hour',color:'#1a9fff'},
-    {name:'Cash',desc:'BH earns $10 per 100 weekly XP',cost:100,unit:'= $10 max/week',color:'#ff6bb5'},
-    {name:'Extra screen time',desc:'Bonus screen time on top of base',cost:50,unit:'= +30 min',color:'#f0a500'},
-    {name:'Overtime pay',desc:'Extra cash beyond weekly max',cost:150,unit:'= +$5 bonus',color:'#22c55e'},
-    {name:'Custom reward',desc:'Parent-approved special request',cost:200,unit:'Talk to admin',color:'#a855f7'}
-  ].map(r=>`<div class="reward-card">
+  const all=[
+    {name:'Screen time',desc:'RH earns 60 min per 100 XP',cost:100,unit:'= 1 hour',color:'#1a9fff',who:'RH'},
+    {name:'Cash',desc:'BH earns $10 per 100 weekly XP',cost:100,unit:'= $10 max/week',color:'#ff6bb5',who:'BH'},
+    {name:'Extra screen time',desc:'Bonus screen time on top of base',cost:50,unit:'= +30 min',color:'#f0a500',who:'RH'},
+    {name:'Overtime pay',desc:'Extra cash beyond weekly max',cost:150,unit:'= +$5 bonus',color:'#22c55e',who:'BH'},
+    {name:'Custom reward',desc:'Parent-approved special request',cost:200,unit:'Talk to admin',color:'#a855f7',who:'both'}
+  ];
+  const visible = isAdmin() ? all : all.filter(r=>r.who==='both'||r.who===currentUser);
+  document.getElementById('reward-grid').innerHTML=visible.map(r=>`<div class="reward-card">
     <div class="reward-name" style="color:${r.color}">${r.name}</div>
     <div class="reward-desc">${r.desc}</div>
     <div class="reward-cost" style="color:${r.color}">${r.cost} XP</div>
     <div class="reward-sub">${r.unit}</div>
     <button class="redeem-btn" style="border-color:${r.color}44;color:${r.color}" onclick="showToast('Request sent to admin!')">Redeem</button>
   </div>`).join('');
+}
+
+async function loadAdminMissionReview() {
+  if(!isAdmin()) return;
+  const { data: missions } = await db.from('missions').select('*').eq('done',false).order('due_date');
+  const el = document.getElementById('admin-mission-review');
+  if(!el) return;
+  if(!missions||!missions.length){el.innerHTML='<div style="font-size:12px;color:#22c55e;padding:8px 0;">All missions complete!</div>';return;}
+  const byPlayer = {};
+  missions.forEach(m=>{const k=m.assigned_to==='Both'?'Both':m.assigned_to;if(!byPlayer[k])byPlayer[k]=[];byPlayer[k].push(m);});
+  el.innerHTML=Object.entries(byPlayer).map(([player,ms])=>`
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#6b7a99;margin-bottom:6px;">${player} — ${ms.length} remaining</div>
+      ${ms.map(m=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1e2535;" id="amr-${m.id}">
+        <div class="check-box" onclick="adminMarkDone(${m.id},${m.xp},'${m.assigned_to}','${m.due_date||today()}')"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:9px;color:#6b7a99;text-transform:uppercase;letter-spacing:.8px;">${m.subject||'General'}</div>
+          <div style="font-size:13px;color:#e0e6f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div>
+        </div>
+        <div style="font-size:11px;color:#1a9fff;flex-shrink:0;">+${m.xp}</div>
+      </div>`).join('')}
+    </div>`).join('');
+}
+
+async function adminMarkDone(id, xp, who, dueDate) {
+  await db.from('missions').update({done:true}).eq('id',id);
+  const target = who==='Both'?'RH':who;
+  const days = getDays(dueDate);
+  const earnedXp = days>=0 ? xp : Math.round(xp*0.4);
+  const { data: p } = await db.from('players').select('total_xp,week_xp').eq('id',target).single();
+  await db.from('players').update({
+    total_xp: Math.max(0,(p.total_xp||0)+earnedXp),
+    week_xp: Math.max(0,(p.week_xp||0)+earnedXp)
+  }).eq('id',target);
+  showToast(target+' earned +'+earnedXp+' XP!');
+  const row = document.getElementById('amr-'+id);
+  if(row) row.remove();
+  loadDashboard();
 }
 
 async function adjustXp(player) {
