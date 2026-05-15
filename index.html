@@ -229,8 +229,7 @@
         <div class="profile-btn" onclick="selectProfile('MH')" id="pb-MH"><div class="pb-avatar av-mh">MH</div><div class="pb-name">MH</div><div class="pb-role">Admin</div></div>
       </div>
       <div id="login-form" style="display:none;width:100%;max-width:360px;">
-        <input class="login-input" id="login-username" type="text" placeholder="Username" autocomplete="off" />
-        <input class="login-input" id="login-password" type="password" placeholder="Password" />
+        <input class="login-input" id="login-password" type="password" placeholder="Password" autocomplete="current-password" />
         <button class="login-btn" onclick="doLogin()">Enter</button>
         <div class="login-err" id="login-err"></div>
         <div class="back-link" onclick="resetLogin()">Back</div>
@@ -534,9 +533,9 @@ function selectProfile(p) {
   if(p==='EH') btn.classList.add('eh-sel');
   if(p==='MH') btn.classList.add('mh-sel');
   document.getElementById('login-form').style.display='block';
-  document.getElementById('login-username').value='';
   document.getElementById('login-password').value='';
   document.getElementById('login-err').textContent='';
+  setTimeout(()=>document.getElementById('login-password').focus(),50);
 }
 
 function resetLogin() {
@@ -546,14 +545,14 @@ function resetLogin() {
 }
 
 function doLogin() {
-  const u = document.getElementById('login-username').value.trim().toLowerCase();
   const p = document.getElementById('login-password').value;
-  const c = CREDS[selectedProfile];
-  if(u===c.u && p===c.p) {
+  if(p === CREDS[selectedProfile].p) {
     currentUser = selectedProfile;
     enterApp();
   } else {
-    document.getElementById('login-err').textContent = 'Wrong username or password.';
+    document.getElementById('login-err').textContent = 'Wrong password.';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
   }
 }
 
@@ -765,6 +764,7 @@ function missionHTML(m) {
     <div class="who-tag who-${who.toLowerCase()}">${who}</div>
     <div class="item-due ${m.done?'due-ok':dueClass(days)}">${m.done?'Done':dueLabel(days)}</div>
     <div class="item-pts" style="${m.done?'color:#22c55e':''}">+${m.xp}</div>
+    ${isAdmin()?`<button onclick="deleteMission(${m.id})" style="background:none;border:none;color:#3a4a66;cursor:pointer;font-size:15px;padding:2px 4px;flex-shrink:0;line-height:1;" onmouseover="this.style.color='#ff4444'" onmouseout="this.style.color='#3a4a66'">✕</button>`:''}
   </div>`;
 }
 
@@ -798,6 +798,7 @@ async function loadOps() {
       </div>
       <div class="who-tag who-${op.assigned_to.toLowerCase()}">${op.assigned_to}</div>
       <div class="item-pts" style="${op.assigned_to==='BH'?'color:#ff6bb5':'color:#1a9fff'}">+15</div>
+      ${isAdmin()?`<button onclick="deleteOp(${op.id})" style="background:none;border:none;color:#3a4a66;cursor:pointer;font-size:15px;padding:2px 4px;flex-shrink:0;line-height:1;" onmouseover="this.style.color='#ff4444'" onmouseout="this.style.color='#3a4a66'">✕</button>`:''}
     </div>`).join('');
 }
 
@@ -893,6 +894,20 @@ function renderRewards(){
     <div class="reward-sub">${r.unit}</div>
     <button class="redeem-btn" style="border-color:${r.color}44;color:${r.color}" onclick="showToast('Request sent to admin!')">Redeem</button>
   </div>`).join('');
+}
+
+async function deleteMission(id) {
+  if(!confirm('Delete this mission?')) return;
+  await db.from('missions').delete().eq('id',id);
+  showToast('Mission deleted.');
+  loadMissions(); loadDashboard();
+}
+
+async function deleteOp(id) {
+  if(!confirm('Delete this op?')) return;
+  await db.from('ops').delete().eq('id',id);
+  showToast('Op deleted.');
+  loadOps();
 }
 
 async function loadAdminMissionReview() {
