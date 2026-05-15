@@ -710,7 +710,7 @@ async function loadDashboard() {
 }
 
 async function loadChecklist() {
-  const { data: items } = await db.from('checklist').select('*').eq('player_id','RH').order('id');
+  const { data: items } = await db.from('checklist').select('*').eq('player_id', currentUser).order('id');
   if(!items) return;
   const morning = items.filter(i=>i.time_of_day==='morning');
   const evening = items.filter(i=>i.time_of_day==='evening');
@@ -730,12 +730,12 @@ async function toggleChecklist(id, isDone, xp) {
   const newDone = !isDone;
   await db.from('checklist').update({done:newDone}).eq('id',id);
   const delta = newDone ? xp : -xp;
-  const { data: p } = await db.from('players').select('total_xp,week_xp').eq('id','RH').single();
+  const { data: p } = await db.from('players').select('total_xp,week_xp').eq('id',currentUser).single();
   await db.from('players').update({
     total_xp: Math.max(0,(p.total_xp||0)+delta),
     week_xp: Math.max(0,(p.week_xp||0)+delta)
-  }).eq('id','RH');
-  if(newDone) showToast('RH earned +'+xp+' XP!');
+  }).eq('id',currentUser);
+  if(newDone) showToast(currentUser+' earned +'+xp+' XP!');
   loadChecklist();
   loadDashboard();
 }
